@@ -1,0 +1,29 @@
+package lab5.server.rest;
+
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response.Status;
+import lab5.api.java.Result;
+
+public class RestResource {
+
+	private static Status errorCodeToStatus( Result.ErrorCode error ) {
+    	Status status =  switch( error) {
+    	case NOT_FOUND -> Status.NOT_FOUND;
+    	case CONFLICT -> Status.CONFLICT;
+    	case FORBIDDEN -> Status.FORBIDDEN;
+    	case NOT_IMPLEMENTED -> Status.NOT_IMPLEMENTED;
+    	case BAD_REQUEST -> Status.BAD_REQUEST;
+    	default -> Status.INTERNAL_SERVER_ERROR;
+    	};
+
+    	return status;
+    }
+	
+	
+	protected static <T> T unwrapResultOrThrow( Result<T> result ) {
+		if( result.isOK() )
+			return result.value();
+		else
+			throw new WebApplicationException( errorCodeToStatus( result.error() ) );
+	}
+}
