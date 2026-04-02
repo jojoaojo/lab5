@@ -46,26 +46,41 @@ public class GrpcUsersController extends GrpcController implements GrpcUsersGrpc
 
 	@Override
 	public void updateUser(UpdateUserArgs request, StreamObserver<UpdateUserResult> responseObserver) {
-		throw new RuntimeException(ErrorCode.NOT_IMPLEMENTED.toString());
+		super.toGrpcResult(responseObserver, 
+				impl.updateUser(request.getName(), request.getPwd(), GrpcUser_to_User(request.getInfo())),
+				(user) -> UpdateUserResult.newBuilder().setUser(User_to_GrpcUser(user)).build());
 	}
 
 	@Override
 	public void deleteUser(DeleteUserArgs request, StreamObserver<DeleteUserResult> responseObserver) {
-		throw new RuntimeException(ErrorCode.NOT_IMPLEMENTED.toString());
+		super.toGrpcResult(responseObserver, 
+				impl.deleteUser(request.getName(), request.getPwd()),
+				(user) -> DeleteUserResult.newBuilder().setUser(User_to_GrpcUser(user)).build());
 	}
 
 	@Override
 	public void searchUsers(SearchUsersArgs request, StreamObserver<GrpcUser> responseObserver) {
-		throw new RuntimeException(ErrorCode.NOT_IMPLEMENTED.toString());
+		var result = impl.searchUsers(request.getQuery());
+		
+		if (result.isOK()) {
+			result.value().forEach(user -> responseObserver.onNext(User_to_GrpcUser(user)));
+			responseObserver.onCompleted();
+		} else {
+			responseObserver.onError(errorCodeToStatus(result.error()));
+		}
 	}
 
 	@Override
 	public void getUserPhoto(GetUserPhotoArgs request, StreamObserver<GetUserPhotoResult> responseObserver) {
-		throw new RuntimeException(ErrorCode.NOT_IMPLEMENTED.toString());
+		super.toGrpcResult(responseObserver, 
+				impl.getUserPhoto(request.getName(), request.getPwd()),
+				(photo) -> GetUserPhotoResult.newBuilder().setPhoto(com.google.protobuf.ByteString.copyFrom(photo)).build());
 	}
 
 	@Override
 	public void updateUserPhoto(UpdateUserPhotoArgs request, StreamObserver<UpdateUserPhotoResult> responseObserver) {
-		throw new RuntimeException(ErrorCode.NOT_IMPLEMENTED.toString());
+		super.toGrpcResult(responseObserver, 
+				impl.updateUserPhoto(request.getName(), request.getPwd(), request.getPhoto().toByteArray()),
+				(user) -> UpdateUserPhotoResult.newBuilder().setUser(User_to_GrpcUser(user)).build());
 	}
 }

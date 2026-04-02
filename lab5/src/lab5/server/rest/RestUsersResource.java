@@ -35,14 +35,14 @@ public class RestUsersResource extends RestResource implements RestUsers {
 	@Override
 	public User updateUser(String name, String pwd, User user) {
 		Log.info("updateUser : user = " + name + "; pwd = " + pwd + " ; userData = " + user);
-		return super.unwrapResultOrThrow( impl.getUser(name, pwd));
+		return super.unwrapResultOrThrow( impl.updateUser(name, pwd, user));
 	}
 
 	@Override
 	public User deleteUser(String name, String pwd) {
 		Log.info("deleteUser : user = " + name + "; pwd = " + pwd);
 
-		return super.unwrapResultOrThrow( impl.getUser(name, pwd));
+		return super.unwrapResultOrThrow( impl.deleteUser(name, pwd));
 	}
 
 	@Override

@@ -39,7 +39,16 @@ public class GrpcClient {
 	}
 	
 	protected Result<Void> processResponse(Runnable proc) {
-		throw new RuntimeException( ErrorCode.NOT_IMPLEMENTED.toString() );
+		try {
+			proc.run();
+			return Result.ok();
+		} catch (StatusRuntimeException sre) {
+			logger.info("Exception:" + sre.getMessage() );
+			return Result.error(statusToErrorCode(sre.getStatus()));
+		} catch (Exception x) {
+			x.printStackTrace();
+			return Result.error(ErrorCode.INTERNAL_ERROR);
+		}
 	}
 
 	protected static ErrorCode statusToErrorCode(Status status) {

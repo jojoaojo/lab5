@@ -52,22 +52,67 @@ public class RestUsersClient extends RestClient implements Users {
 	}
 
 	public Result<User> updateUser(String userId, String password, User user) {
-		throw new RuntimeException(ErrorCode.NOT_IMPLEMENTED.toString());		
+		return super.reTry( () -> doUpdateUser( userId, password, user ));
+	}
+	
+	private Result<User> doUpdateUser(String userId, String password, User user) {
+		Response r = target.path( userId )
+				.queryParam(RestUsers.PWD, password).request()
+				.accept(MediaType.APPLICATION_JSON)
+				.put(Entity.entity(user, MediaType.APPLICATION_JSON));
+
+		return super.processResponse( r, User.class );
 	}
 
 	public Result<User> deleteUser(String userId, String password) {
-		throw new RuntimeException(ErrorCode.NOT_IMPLEMENTED.toString());		
+		return super.reTry( () -> doDeleteUser( userId, password ));
+	}
+	
+	private Result<User> doDeleteUser(String userId, String password) {
+		Response r = target.path( userId )
+				.queryParam(RestUsers.PWD, password).request()
+				.accept(MediaType.APPLICATION_JSON)
+				.delete();
+
+		return super.processResponse( r, User.class );
 	}
 
 	public Result<List<User>> searchUsers(String pattern) {
-		throw new RuntimeException(ErrorCode.NOT_IMPLEMENTED.toString());		
+		return super.reTry( () -> doSearchUsers( pattern ));
+	}
+	
+	private Result<List<User>> doSearchUsers(String pattern) {
+		Response r = target
+				.queryParam(RestUsers.QUERY, pattern).request()
+				.accept(MediaType.APPLICATION_JSON)
+				.get();
+
+		return super.processResponse( r, new jakarta.ws.rs.core.GenericType<List<User>>() {} );
 	}
 
 	public Result<byte[]> getUserPhoto(String name, String pwd) {
-		throw new RuntimeException(ErrorCode.NOT_IMPLEMENTED.toString());		
+		return super.reTry( () -> doGetUserPhoto( name, pwd ));
+	}
+	
+	private Result<byte[]> doGetUserPhoto(String name, String pwd) {
+		Response r = target.path( name ).path("photo")
+				.queryParam(RestUsers.PWD, pwd).request()
+				.accept(MediaType.APPLICATION_OCTET_STREAM)
+				.get();
+
+		return super.processResponse( r, byte[].class );
 	}
 
 	public Result<User> updateUserPhoto(String name, String pwd, byte[] photo) {
-		throw new RuntimeException(ErrorCode.NOT_IMPLEMENTED.toString());		
+		return super.reTry( () -> doUpdateUserPhoto( name, pwd, photo ));
+	}
+	
+	private Result<User> doUpdateUserPhoto(String name, String pwd, byte[] photo) {
+		Response r = target.path( name ).path("photo")
+				.queryParam(RestUsers.PWD, pwd).request()
+				.accept(MediaType.APPLICATION_JSON)
+				.put(Entity.entity(photo, MediaType.APPLICATION_OCTET_STREAM));
+
+		return super.processResponse( r, User.class );
 	}	
 }

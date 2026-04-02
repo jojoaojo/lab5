@@ -81,11 +81,30 @@ public class RestClient {
 	}
 	
 	protected <T> Result<T> processResponse(Response r, GenericType<T> entityType) {
-		throw new RuntimeException(ErrorCode.NOT_IMPLEMENTED.toString());
+		try {
+			var status = r.getStatusInfo().toEnum();
+			if (status == Status.OK && r.hasEntity())
+				return Result.ok(r.readEntity(entityType));
+			else 
+				if( status == Status.NO_CONTENT) 
+					return Result.ok();
+				
+			return Result.error(getErrorCodeFrom(status.getStatusCode()));
+		} finally {
+			r.close();
+		}
 	}
 
 	protected Result<Void> processResponse(Response r) {
-		throw new RuntimeException(ErrorCode.NOT_IMPLEMENTED.toString());
+		try {
+			var status = r.getStatusInfo().toEnum();
+			if (status == Status.OK || status == Status.NO_CONTENT)
+				return Result.ok();
+				
+			return Result.error(getErrorCodeFrom(status.getStatusCode()));
+		} finally {
+			r.close();
+		}
 	}
 
 	

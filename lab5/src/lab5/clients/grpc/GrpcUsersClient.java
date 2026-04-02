@@ -42,27 +42,57 @@ public class GrpcUsersClient extends GrpcClient implements Users {
 
 	@Override
 	public Result<User> updateUser(String userId, String pwd, User user) {
-		throw new RuntimeException(ErrorCode.NOT_IMPLEMENTED.toString());
+		return super.processResponse( () -> {
+			var res = stub.updateUser(lab5.server.grpc.generated_java.UsersProtoBuf.UpdateUserArgs.newBuilder()
+					.setName(userId).setPwd(pwd)
+					.setInfo(DataModelAdaptor.User_to_GrpcUser(user))
+					.build());
+			return DataModelAdaptor.GrpcUser_to_User(res.getUser());
+		});
 	}
 
 	@Override
 	public Result<User> deleteUser(String userId, String pwd) {
-		throw new RuntimeException(ErrorCode.NOT_IMPLEMENTED.toString());
+		return super.processResponse( () -> {
+			var res = stub.deleteUser(lab5.server.grpc.generated_java.UsersProtoBuf.DeleteUserArgs.newBuilder()
+					.setName(userId).setPwd(pwd)
+					.build());
+			return DataModelAdaptor.GrpcUser_to_User(res.getUser());
+		});
 	}
 
 	@Override
 	public Result<List<User>> searchUsers(String pattern) {
-		throw new RuntimeException(ErrorCode.NOT_IMPLEMENTED.toString());
+		return super.processResponse( () -> {
+			var iterator = stub.searchUsers(lab5.server.grpc.generated_java.UsersProtoBuf.SearchUsersArgs.newBuilder()
+					.setQuery(pattern)
+					.build());
+			
+			java.util.List<User> users = new java.util.ArrayList<>();
+			iterator.forEachRemaining(grpcUser -> users.add(DataModelAdaptor.GrpcUser_to_User(grpcUser)));
+			return users;
+		});
 	}
 
 	@Override
 	public Result<byte[]> getUserPhoto(String name, String pwd) {
-		throw new RuntimeException(ErrorCode.NOT_IMPLEMENTED.toString());
+		return super.processResponse( () -> {
+			var res = stub.getUserPhoto(lab5.server.grpc.generated_java.UsersProtoBuf.GetUserPhotoArgs.newBuilder()
+					.setName(name).setPwd(pwd)
+					.build());
+			return res.getPhoto().toByteArray();
+		});
 	}
 
 	@Override
 	public Result<User> updateUserPhoto(String name, String pwd, byte[] photo) {
-		throw new RuntimeException(ErrorCode.NOT_IMPLEMENTED.toString());
+		return super.processResponse( () -> {
+			var res = stub.updateUserPhoto(lab5.server.grpc.generated_java.UsersProtoBuf.UpdateUserPhotoArgs.newBuilder()
+					.setName(name).setPwd(pwd)
+					.setPhoto(com.google.protobuf.ByteString.copyFrom(photo))
+					.build());
+			return DataModelAdaptor.GrpcUser_to_User(res.getUser());
+		});
 	}
 
 	

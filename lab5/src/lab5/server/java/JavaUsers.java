@@ -71,27 +71,199 @@ public class JavaUsers implements Users {
 
 	@Override
 	public Result<User> updateUser(String userId, String password, User user) {
-		return Result.error( ErrorCode.NOT_IMPLEMENTED );
+		Log.info("updateUser : user = " + userId + "; pwd = " + password);
+
+		// Check if parameters are valid
+		if (userId == null || password == null) {
+			Log.info("UserId or password null.");
+			return Result.error(ErrorCode.BAD_REQUEST);
+		}
+
+		User existingUser = null;
+		try {
+			existingUser = hibernate.get(User.class, userId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Result.error(ErrorCode.INTERNAL_ERROR);
+		}
+
+		// Check if user exists and password is correct
+		if (existingUser == null) {
+			Log.info("User not found.");
+			return Result.error(ErrorCode.NOT_FOUND);
+		}
+
+		if (!existingUser.getPwd().equals(password)) {
+			Log.info("Password is incorrect.");
+			return Result.error(ErrorCode.FORBIDDEN);
+		}
+
+		// Update fields if provided (non-null)
+		if (user.getPwd() != null)
+			existingUser.setPwd(user.getPwd());
+		if (user.getDisplayName() != null)
+			existingUser.setDisplayName(user.getDisplayName());
+		if (user.getPhoneNumbers() != null)
+			existingUser.setPhoneNumbers(user.getPhoneNumbers());
+		if (user.getPhoto() != null)
+			existingUser.setPhoto(user.getPhoto());
+
+		try {
+			hibernate.update(existingUser);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Result.error(ErrorCode.INTERNAL_ERROR);
+		}
+
+		return Result.ok(existingUser);
 	}
 
 	@Override
 	public Result<User> deleteUser(String userId, String password) {
-		return Result.error( ErrorCode.NOT_IMPLEMENTED );
+		Log.info("deleteUser : user = " + userId + "; pwd = " + password);
+
+		// Check if parameters are valid
+		if (userId == null || password == null) {
+			Log.info("UserId or password null.");
+			return Result.error(ErrorCode.BAD_REQUEST);
+		}
+
+		User user = null;
+		try {
+			user = hibernate.get(User.class, userId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Result.error(ErrorCode.INTERNAL_ERROR);
+		}
+
+		// Check if user exists and password is correct
+		if (user == null) {
+			Log.info("User not found.");
+			return Result.error(ErrorCode.NOT_FOUND);
+		}
+
+		if (!user.getPwd().equals(password)) {
+			Log.info("Password is incorrect.");
+			return Result.error(ErrorCode.FORBIDDEN);
+		}
+
+		try {
+			hibernate.delete(user);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Result.error(ErrorCode.INTERNAL_ERROR);
+		}
+
+		return Result.ok(user);
 	}
 
 	@Override
 	public Result<List<User>> searchUsers(String pattern) {
-		return Result.error( ErrorCode.NOT_IMPLEMENTED );
+		Log.info("searchUsers : pattern = " + pattern);
+
+		// Check if pattern is valid
+		if (pattern == null) {
+			Log.info("Pattern is null.");
+			return Result.error(ErrorCode.BAD_REQUEST);
+		}
+
+		try {
+			// Search for users where name contains pattern (case-insensitive)
+			// Using JPQL with string formatting (safe with proper escaping)
+			String jpqlQuery = String.format("SELECT u FROM User u WHERE LOWER(u.name) LIKE LOWER('%%%s%%')", 
+					pattern.replace("'", "''"));
+			List<User> users = hibernate.jpql(jpqlQuery, User.class);
+
+			// Set password to empty string for all users
+			users.forEach(u -> u.setPwd(""));
+
+			return Result.ok(users);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Result.error(ErrorCode.INTERNAL_ERROR);
+		}
 	}
 
 	@Override
 	public Result<byte[]> getUserPhoto(String name, String pwd) {
-		return Result.error( ErrorCode.NOT_IMPLEMENTED );
+		Log.info("getUserPhoto : user = " + name);
+
+		// Check if parameters are valid
+		if (name == null || pwd == null) {
+			Log.info("Name or password null.");
+			return Result.error(ErrorCode.BAD_REQUEST);
+		}
+
+		User user = null;
+		try {
+			user = hibernate.get(User.class, name);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Result.error(ErrorCode.INTERNAL_ERROR);
+		}
+
+		// Check if user exists
+		if (user == null) {
+			Log.info("User not found.");
+			return Result.error(ErrorCode.NOT_FOUND);
+		}
+
+		// Check if password is correct
+		if (!user.getPwd().equals(pwd)) {
+			Log.info("Password is incorrect.");
+			return Result.error(ErrorCode.FORBIDDEN);
+		}
+
+		// Check if user has a photo
+		if (user.getPhoto() == null || user.getPhoto().length == 0) {
+			Log.info("User has no photo.");
+			return Result.error(ErrorCode.NOT_FOUND);
+		}
+
+		return Result.ok(user.getPhoto());
 	}
 
 	@Override
 	public Result<User> updateUserPhoto(String name, String pwd, byte[] photo) {
-		return Result.error( ErrorCode.NOT_IMPLEMENTED );
+		Log.info("updateUserPhoto : user = " + name);
+
+		// Check if parameters are valid
+		if (name == null || pwd == null || photo == null) {
+			Log.info("Name, password or photo null.");
+			return Result.error(ErrorCode.BAD_REQUEST);
+		}
+
+		User user = null;
+		try {
+			user = hibernate.get(User.class, name);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Result.error(ErrorCode.INTERNAL_ERROR);
+		}
+
+		// Check if user exists
+		if (user == null) {
+			Log.info("User not found.");
+			return Result.error(ErrorCode.NOT_FOUND);
+		}
+
+		// Check if password is correct
+		if (!user.getPwd().equals(pwd)) {
+			Log.info("Password is incorrect.");
+			return Result.error(ErrorCode.FORBIDDEN);
+		}
+
+		// Update photo
+		user.setPhoto(photo);
+
+		try {
+			hibernate.update(user);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Result.error(ErrorCode.INTERNAL_ERROR);
+		}
+
+		return Result.ok(user);
 	}
 
 }
